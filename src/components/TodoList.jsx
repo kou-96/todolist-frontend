@@ -18,85 +18,84 @@ const TodoList = () => {
     setEditValue("");
   };
 
+  const fetchTodos = async () => {
+    try {
+      const response = await fetch(`${BASE_URL}/todos`);
+      const data = await response.json();
+      setTodos(data);
+    } catch (error) {
+      console.error("Todo の取得中にエラーが発生しました:", error);
+    }
+  };
+
   useEffect(() => {
-    fetch(`${BASE_URL}/todos`)
-      .then((response) => response.json())
-      .then((data) => setTodos(data))
-      .catch((error) =>
-        console.error("Todo の取得中にエラーが発生しました:", error)
-      );
+    fetchTodos();
   }, []);
 
-  const addTask = () => {
+  const addTask = async () => {
     if (!newTodo.trim()) {
       alert("タスクを入力してください。");
       return;
     }
-    fetch(`${BASE_URL}/tasks`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ description: newTodo }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setTodos([...todos, data]);
-        setNewTodo("");
-      })
-      .catch((error) =>
-        console.error("Todo の追加中にエラーが発生しました:", error)
-      );
+    try {
+      const response = await fetch(`${BASE_URL}/tasks`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ description: newTodo }),
+      });
+      const data = await response.json();
+      setTodos([...todos, data]);
+      setNewTodo("");
+    } catch (error) {
+      console.error("Todo の追加中にエラーが発生しました:", error);
+    }
   };
 
-  const patchTask = (id, completed) => {
-    fetch(`${BASE_URL}/tasks/${id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ completed: !completed }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setTodos(todos.map((todo) => (todo.id === id ? data : todo)));
-      })
-      .catch((error) =>
-        console.error("Todo の更新中にエラーが発生しました:", error)
-      );
+  const patchTask = async (id, completed) => {
+    try {
+      const response = await fetch(`${BASE_URL}/tasks/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ completed: !completed }),
+      });
+      const data = await response.json();
+      setTodos(todos.map((todo) => (todo.id === id ? data : todo)));
+    } catch (error) {
+      console.error("Todo の更新中にエラーが発生しました:", error);
+    }
   };
 
-  const editText = () => {
-    fetch(`${BASE_URL}/tasks/${editId}/edit`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ description: editValue }),
-    })
-      .then((response) => response.json())
-      .then((updatedTodo) => {
-        setTodos(
-          todos.map((todo) => (todo.id === editId ? updatedTodo : todo))
-        );
-        setEditId(null);
-        setEditValue("");
-      })
-      .catch((error) =>
-        console.error("タスク更新中に問題が発生しました", error)
-      );
+  const editText = async () => {
+    try {
+      const response = await fetch(`${BASE_URL}/tasks/${editId}/edit`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ description: editValue }),
+      });
+      const updatedTodo = await response.json();
+      setTodos(todos.map((todo) => (todo.id === editId ? updatedTodo : todo)));
+      setEditId(null);
+      setEditValue("");
+    } catch (error) {
+      console.error("タスク更新中に問題が発生しました", error);
+    }
   };
 
-  const deleteTask = (id) => {
-    fetch(`http://localhost:5003/tasks/${id}`, {
-      method: "DELETE",
-    })
-      .then(() => {
-        setTodos(todos.filter((todo) => todo.id !== id));
-      })
-      .catch((error) =>
-        console.error("Todo の削除中にエラーが発生しました:", error)
-      );
+  const deleteTask = async (id) => {
+    try {
+      await fetch(`${BASE_URL}/tasks/${id}`, {
+        method: "DELETE",
+      });
+      setTodos(todos.filter((todo) => todo.id !== id));
+    } catch (error) {
+      console.error("Todo の削除中にエラーが発生しました:", error);
+    }
   };
 
   return (
