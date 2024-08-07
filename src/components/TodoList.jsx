@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const TodoList = () => {
   const [todos, setTodos] = useState([]);
   const [newTodo, setNewTodo] = useState("");
   const [editId, setEditId] = useState(null);
   const [editValue, setEditValue] = useState("");
+  const [username, setUsername] = useState("");
+  const navigate = useNavigate();
 
   const BASE_URL = "http://localhost:5003";
 
@@ -18,18 +21,29 @@ const TodoList = () => {
     setEditValue("");
   };
 
-  const fetchTodos = async () => {
-    try {
-      const response = await fetch(`${BASE_URL}/todos`);
-      const data = await response.json();
-      setTodos(data);
-    } catch (error) {
-      console.error("Todo の取得中にエラーが発生しました:", error);
-    }
+  const goback = () => {
+    navigate("/");
   };
 
   useEffect(() => {
-    fetchTodos();
+    const fetchData = async () => {
+      const savedUsername = localStorage.getItem("username");
+      if (savedUsername) {
+        setUsername(savedUsername);
+      }
+
+      try {
+        const res = await fetch(`${BASE_URL}/todos`);
+        if (!res.ok) {
+          throw new Error("ネットワークにエラーが発生しました。");
+        }
+        const data = await res.json();
+        setTodos(data);
+      } catch (error) {
+        console.error("Todo の取得中にエラーが発生しました:", error);
+      }
+    };
+    fetchData();
   }, []);
 
   const addTask = async () => {
@@ -38,14 +52,14 @@ const TodoList = () => {
       return;
     }
     try {
-      const response = await fetch(`${BASE_URL}/tasks`, {
+      const res = await fetch(`${BASE_URL}/tasks`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ description: newTodo }),
       });
-      const data = await response.json();
+      const data = await res.json();
       setTodos([...todos, data]);
       setNewTodo("");
     } catch (error) {
@@ -55,14 +69,14 @@ const TodoList = () => {
 
   const patchTask = async (id, completed) => {
     try {
-      const response = await fetch(`${BASE_URL}/tasks/${id}`, {
+      const res = await fetch(`${BASE_URL}/tasks/${id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ completed: !completed }),
       });
-      const data = await response.json();
+      const data = await res.json();
       setTodos(todos.map((todo) => (todo.id === id ? data : todo)));
     } catch (error) {
       console.error("Todo の更新中にエラーが発生しました:", error);
@@ -71,14 +85,14 @@ const TodoList = () => {
 
   const editText = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/tasks/${editId}/edit`, {
+      const res = await fetch(`${BASE_URL}/tasks/${editId}/edit`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ description: editValue }),
       });
-      const updatedTodo = await response.json();
+      const updatedTodo = await res.json();
       setTodos(todos.map((todo) => (todo.id === editId ? updatedTodo : todo)));
       setEditId(null);
       setEditValue("");
@@ -100,6 +114,7 @@ const TodoList = () => {
 
   return (
     <div>
+      <h1>Welcome!{username}</h1>
       <h1>Todo List</h1>
       <input
         type="text"
@@ -148,6 +163,7 @@ const TodoList = () => {
           </li>
         ))}
       </ul>
+      <button onClick={goback}>戻る</button>
     </div>
   );
 };
