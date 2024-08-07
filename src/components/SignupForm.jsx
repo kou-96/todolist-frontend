@@ -6,6 +6,8 @@ function SignupForm() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+  const BASE_URL = "http://localhost:5003";
 
   const [errors, setErrors] = useState({
     username: "",
@@ -15,39 +17,39 @@ function SignupForm() {
 
   const validateForm = () => {
     const newErrors = { username: "", email: "", password: "" };
-    let hasErrors = false;
+    let hasErrors = true;
 
     if (!username) {
       newErrors.username = "ユーザー名を入力してください。";
-      hasErrors = true;
+      hasErrors = false;
     }
 
     if (!email) {
       newErrors.email = "メールアドレスを入力してください。";
-      hasErrors = true;
+      hasErrors = false;
     }
 
     if (!password) {
       newErrors.password = "パスワードを入力してください。";
-      hasErrors = true;
+      hasErrors = false;
     }
 
     setErrors(newErrors);
-    return !hasErrors;
+    return hasErrors;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (validateForm()) {
+    const hasValidationError = validateForm(username, email, password);
+
+    if (hasValidationError) {
       await signup(username, email, password);
     }
   };
 
-  const navigate = useNavigate();
-
   async function signup(username, email, password) {
-    const url = "http://localhost:5003/users/signup";
+    const url = `${BASE_URL}/users/signup`;
     const data = {
       username: username,
       email: email,
@@ -66,11 +68,13 @@ function SignupForm() {
         const errorMessage = await res.text();
         throw new Error(errorMessage || "アカウント作成に失敗しました");
       }
-      const resData = await res.text();
-      alert(resData);
-      navigate("/signup/success");
+      const resData = await res.json();
+      localStorage.setItem("username", resData.username);
+      alert(resData.message);
+      navigate("/");
+      return resData;
     } catch (error) {
-      alert("このユーザー名またはメールアドレスは既に使用されています。");
+      alert(error.message);
     }
   }
   return (

@@ -3,9 +3,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 
 function LoginForm() {
-  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+  const BASE_URL = "http://localhost:5003";
 
   const [errors, setErrors] = useState({
     username: "",
@@ -13,45 +14,39 @@ function LoginForm() {
     password: "",
   });
 
-  const validateForm = () => {
-    const newErrors = { username: "", email: "", password: "" };
-    let hasErrors = false;
-
-    if (!username) {
-      newErrors.username = "ユーザー名を入力してください。";
-      hasErrors = true;
-    }
+  const validateForm = (email, password) => {
+    const newErrors = { email: "", password: "" };
+    let hasErrors = true;
 
     if (!email) {
       newErrors.email = "メールアドレスを入力してください。";
-      hasErrors = true;
+      hasErrors = false;
     }
 
     if (!password) {
       newErrors.password = "パスワードを入力してください。";
-      hasErrors = true;
+      hasErrors = false;
     }
 
     setErrors(newErrors);
-    return !hasErrors;
+    return hasErrors;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (validateForm()) {
-      await login(username, email, password);
+    const hasValidationError = validateForm(email, password);
+
+    if (hasValidationError) {
+      await login(email, password);
     }
   };
 
-  const navigate = useNavigate();
-
-  async function login(username, email, password) {
-    const url = "http://localhost:5003/users/login";
+  async function login(email, password) {
+    const url = `${BASE_URL}/users/login`;
     const data = {
-      username: username,
-      email: email,
-      password: password,
+      email,
+      password,
     };
     try {
       const res = await fetch(url, {
@@ -66,9 +61,10 @@ function LoginForm() {
         const errorMessage = await res.text();
         throw new Error(errorMessage || "ログインに失敗しました");
       }
-      const resData = await res.text();
-      alert(resData);
-      navigate(`/${username}`);
+      const resData = await res.json();
+      localStorage.setItem("username", resData.username);
+      alert("ログインに成功しました");
+      navigate("/todo");
     } catch (error) {
       alert("ログイン情報が間違っています。");
     }
@@ -78,16 +74,6 @@ function LoginForm() {
       <form onSubmit={handleSubmit}>
         <div>
           <h1>ログイン</h1>
-          <div>
-            <input
-              type="text"
-              value={username}
-              placeholder="Username"
-              onChange={(e) => setUsername(e.target.value)}
-              className={errors.username ? "input-error" : ""}
-            />
-            <span className="error-message">{errors.username}</span>
-          </div>
           <div>
             <input
               type="text"
