@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const TodoList = () => {
   const [todos, setTodos] = useState([]);
@@ -16,6 +17,12 @@ const TodoList = () => {
   const handleCancel = () => {
     setEditId(null);
     setEditValue("");
+  };
+
+  const navigate = useNavigate();
+
+  const goback = () => {
+    navigate("/");
   };
 
   const fetchTodos = async () => {
@@ -148,6 +155,7 @@ const TodoList = () => {
           </li>
         ))}
       </ul>
+      <button onClick={goback}>戻る</button>
     </div>
   );
 };
