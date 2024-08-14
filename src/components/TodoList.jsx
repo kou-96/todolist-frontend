@@ -1,15 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+const BASE_URL = "http://localhost:5003";
 
 const TodoList = () => {
   const [todos, setTodos] = useState([]);
   const [newTodo, setNewTodo] = useState("");
   const [editId, setEditId] = useState(null);
   const [editValue, setEditValue] = useState("");
-  const [username, setUsername] = useState("");
   const navigate = useNavigate();
-
-  const BASE_URL = "http://localhost:5003";
 
   const handleEditClick = (id, description) => {
     setEditId(id);
@@ -27,13 +25,11 @@ const TodoList = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const savedUsername = localStorage.getItem("username");
-      if (savedUsername) {
-        setUsername(savedUsername);
-      }
-
       try {
-        const res = await fetch(`${BASE_URL}/todos`);
+        const cookieItems = document.cookie.split(";");
+        const user_id = cookieItems[cookieItems.length - 1].split("=")[1];
+
+        const res = await fetch(`${BASE_URL}/todos/${user_id}`);
         if (!res.ok) {
           throw new Error("ネットワークにエラーが発生しました。");
         }
@@ -52,12 +48,15 @@ const TodoList = () => {
       return;
     }
     try {
+      const cookieItems = document.cookie.split(";");
+      const user_id = cookieItems[cookieItems.length - 1].split("=")[1];
+
       const res = await fetch(`${BASE_URL}/tasks`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ description: newTodo }),
+        body: JSON.stringify({ description: newTodo, user_id: user_id }),
       });
       const data = await res.json();
       setTodos([...todos, data]);
@@ -114,7 +113,6 @@ const TodoList = () => {
 
   return (
     <div>
-      <h1>Welcome!{username}</h1>
       <h1>Todo List</h1>
       <input
         type="text"
