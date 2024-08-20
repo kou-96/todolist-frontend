@@ -66,13 +66,10 @@ function SignupForm() {
       }
       const resData = await res.json();
 
-      console.log(resData);
-
       document.cookie = `user_id=${resData.data.id}`;
 
       alert(resData.message);
       navigate("/todo");
-      return resData;
     } catch (error) {
       alert(error.message);
     }
