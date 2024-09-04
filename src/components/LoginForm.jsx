@@ -66,7 +66,6 @@ function LoginForm() {
 
       alert("ログインに成功しました");
       navigate("/todo");
-      return resData;
     } catch (error) {
       alert("ログイン情報が間違っています。");
     }
