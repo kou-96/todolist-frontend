@@ -2,17 +2,16 @@ import "./Required.css";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 
+const BASE_URL = "http://localhost:5003";
+
 function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const navigate = useNavigate();
-  const BASE_URL = "http://localhost:5003";
-
   const [errors, setErrors] = useState({
-    username: "",
     email: "",
     password: "",
   });
+  const navigate = useNavigate();
 
   const validateForm = (email, password) => {
     const newErrors = { email: "", password: "" };
@@ -62,7 +61,9 @@ function LoginForm() {
         throw new Error(errorMessage || "ログインに失敗しました");
       }
       const resData = await res.json();
-      localStorage.setItem("username", resData.username);
+
+      document.cookie = `user_id=${resData.data.id}`;
+
       alert("ログインに成功しました");
       navigate("/todo");
     } catch (error) {
